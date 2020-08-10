@@ -1,5 +1,6 @@
 import React from "react";
 import App from "./App.js";
+import { episodeData } from "./mock/epsiodeData";
 import { mockEpisodes } from "./mock/mockEpisodes";
 import { fetchShow as mockFetchShow } from "./api/fetchShow";
 import {
@@ -9,24 +10,25 @@ import {
   getAllByTestId,
   queryAllByAltText,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 jest.mock("./api/fetchShow.js");
 
 test("renders component", () => {
+  mockFetchShow.mockResolvedValue({ data: episodeData });
   render(<App />);
 });
 
-test("test title renders", async () => {
-  mockFetchShow.mockResolvedValueOnce({ data: mockEpisodes });
-
-  const { getByText, queryAllByTestId } = render(<App />);
+test("Updates episodes list with dropdown change", async () => {
+  mockFetchShow.mockResolvedValue({ data: episodeData });
+  const { getByText, getAllByText, queryAllByTestId } = render(<App />);
 
   expect(queryAllByTestId("episodes")).toHaveLength(0);
-
-  const drop = getByText(/fetching data/i);
-  fireEvent.click(drop);
 
   await wait();
+  userEvent.click(getByText(/select a season/i));
+  userEvent.click(getByText(/season 1/i));
 
-  expect(queryAllByTestId("episodes")).toHaveLength(0);
+  await wait();
+  expect(queryAllByTestId("episodes")).toHaveLength(6);
 });
